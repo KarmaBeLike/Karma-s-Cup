@@ -12,7 +12,7 @@ func NewJokeProvider() *JokeProvider {
 }
 
 func (j *JokeProvider) GetContent() (string, error) {
-	// Используем API анекдотов (можно заменить на другой источник)
+
 	resp, err := http.Get("https://v2.jokeapi.dev/joke/Any")
 	if err != nil {
 		return "", err
@@ -30,7 +30,6 @@ func (j *JokeProvider) GetContent() (string, error) {
 		return "", err
 	}
 
-	// В зависимости от типа шутки возвращаем либо одну строку, либо setup + delivery
 	if result.Type == "single" {
 		return result.Joke, nil
 	}

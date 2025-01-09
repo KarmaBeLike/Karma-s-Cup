@@ -12,7 +12,7 @@ func NewQuoteProvider() *QuoteProvider {
 }
 
 func (q *QuoteProvider) GetContent() (string, error) {
-	// Используем API для цитат
+
 	resp, err := http.Get("https://zenquotes.io/api/today")
 	if err != nil {
 		return "", err

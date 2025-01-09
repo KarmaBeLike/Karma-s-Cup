@@ -25,10 +25,9 @@ func (h *HoroscopeProvider) GetContent() (string, error) {
 	}
 	defer resp.Body.Close()
 
-	// Обновленная структура с правильным названием поля
 	var result struct {
 		Data struct {
-			HoroscopeData string `json:"horoscope_data"` // изменили название поля
+			HoroscopeData string `json:"horoscope_data"`
 			Date          string `json:"date"`
 		} `json:"data"`
 		Status  int  `json:"status"`
@@ -43,8 +42,7 @@ func (h *HoroscopeProvider) GetContent() (string, error) {
 		return "", fmt.Errorf("пустой гороскоп в ответе")
 	}
 
-	// Возвращаем гороскоп с датой
-	return fmt.Sprintf("Гороскоп на %s:\n%s",
+	return fmt.Sprintf("%s:\n%s",
 		result.Data.Date,
 		result.Data.HoroscopeData), nil
 }

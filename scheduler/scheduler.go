@@ -11,26 +11,36 @@ import (
 
 type Scheduler struct {
 	bot       *telebot.Bot
-	recipient *telebot.User
+	chat      *telebot.Chat 
 	config    *config.Config
 	horoscope content.ContentProvider
 	joke      content.ContentProvider
 	quote     content.ContentProvider
 }
 
-func New(bot *telebot.Bot, recipient *telebot.User, config *config.Config) *Scheduler {
+func New(bot *telebot.Bot, config *config.Config) *Scheduler {
 	return &Scheduler{
 		bot:       bot,
-		recipient: recipient,
 		config:    config,
-		horoscope: content.NewHoroscopeProvider("Aquarius"),
+		horoscope: content.NewHoroscopeProvider("aquarius"), 
 		joke:      content.NewJokeProvider(),
 		quote:     content.NewQuoteProvider(),
 	}
 }
 
+
+func (s *Scheduler) SetChat(chat *telebot.Chat) {
+	s.chat = chat
+	log.Printf("Установлен чат для отправки сообщений: %s (ID: %d)", chat.Title, chat.ID)
+}
+
 func (s *Scheduler) Start() {
-	log.Println("Планировщик запущен")
+	if s.chat == nil {
+		log.Println("Чат не установлен! Ожидаем добавления бота в группу...")
+		return
+	}
+
+	log.Printf("Планировщик запущен для группы: %s", s.chat.Title)
 	ticker := time.NewTicker(1 * time.Minute)
 
 	for range ticker.C {
@@ -40,52 +50,58 @@ func (s *Scheduler) Start() {
 
 		switch {
 		case hour == s.config.MorningHour && minute == s.config.MorningMin:
-			log.Printf("Отправка утреннего сообщения в %02d:%02d", hour, minute)
 			s.sendMorningMessage()
 		case hour == s.config.NoonHour && minute == s.config.NoonMin:
-			log.Printf("Отправка дневного сообщения в %02d:%02d", hour, minute)
 			s.sendNoonMessage()
 		case hour == s.config.EveningHour && minute == s.config.EveningMin:
-			log.Printf("Отправка вечернего сообщения в %02d:%02d", hour, minute)
 			s.sendEveningMessage()
 		}
 	}
 }
 
 func (s *Scheduler) sendMorningMessage() {
+	if s.chat == nil {
+		return
+	}
 	content, err := s.horoscope.GetContent()
 	if err != nil {
 		log.Printf("Ошибка получения гороскопа: %v", err)
 		return
 	}
 
-	_, err = s.bot.Send(s.recipient, "Гороскоп на сегодня:\n"+content)
+	_, err = s.bot.Send(s.chat, content)
 	if err != nil {
 		log.Printf("Ошибка отправки утреннего сообщения: %v", err)
 	}
 }
 
 func (s *Scheduler) sendNoonMessage() {
+	if s.chat == nil {
+		return
+	}
 	content, err := s.joke.GetContent()
 	if err != nil {
 		log.Printf("Ошибка получения анекдота: %v", err)
 		return
 	}
 
-	_, err = s.bot.Send(s.recipient, "Анекдот дня:\n"+content)
+	_, err = s.bot.Send(s.chat, content)
 	if err != nil {
 		log.Printf("Ошибка отправки дневного сообщения: %v", err)
 	}
 }
 
 func (s *Scheduler) sendEveningMessage() {
+	if s.chat == nil {
+		return
+	}
 	content, err := s.quote.GetContent()
 	if err != nil {
 		log.Printf("Ошибка получения цитаты: %v", err)
 		return
 	}
 
-	_, err = s.bot.Send(s.recipient, "Цитата дня:\n"+content)
+	_, err = s.bot.Send(s.chat, content)
 	if err != nil {
 		log.Printf("Ошибка отправки вечернего сообщения: %v", err)
 	}
