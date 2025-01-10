@@ -14,7 +14,7 @@ func New() *Config {
 		MorningHour: 8,
 		MorningMin:  35,
 		NoonHour:    15,
-		NoonMin:     38,
+		NoonMin:     45,
 		EveningHour: 20,
 		EveningMin:  21,
 	}
