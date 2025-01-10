@@ -38,7 +38,7 @@ jobs:
 
     - name: Restart bot
       run: |
-        ssh -o StrictHostKeyChecking=no root@<IP-адрес> << 'EOF'
+        ssh -o StrictHostKeyChecking=no root@89.110.83.57 << 'EOF'
         pkill myapp || true
         nohup /var/www/myapp/myapp > /var/www/myapp/myapp.log 2>&1 &
         EOF
