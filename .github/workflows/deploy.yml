@@ -31,7 +31,7 @@ jobs:
     # 4. Сборка проекта
     - name: Build the project
       run: |
-        GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o myapp main.go
+       GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o myapp main.go
 
     # 5. Загрузка файлов на сервер
     - name: Deploy to server
