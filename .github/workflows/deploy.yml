@@ -36,7 +36,7 @@ jobs:
     # 5. Загрузка файлов на сервер
     - name: Deploy to server
       run: |
-        scp -r ./* root@89.110.83.57:/var/www/myapp/
+        scp -o StrictHostKeyChecking=no myapp root@89.110.83.57:/var/www/myapp/
 
     # 6. Перезапуск бота на сервере
     - name: Restart bot on server
