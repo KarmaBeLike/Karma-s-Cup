@@ -13,8 +13,8 @@ func New() *Config {
 	return &Config{
 		MorningHour: 8,
 		MorningMin:  35,
-		NoonHour:    14,
-		NoonMin:     35,
+		NoonHour:    15,
+		NoonMin:     10,
 		EveningHour: 20,
 		EveningMin:  21,
 	}
