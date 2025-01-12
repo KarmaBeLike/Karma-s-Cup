@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Проверка исходного кода
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # 2. Настройка SSH
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
@@ -22,33 +20,34 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 89.110.83.57 >> ~/.ssh/known_hosts
 
-    # 3. Установка Go (если требуется)
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.22.6'
+        go-version: '1.20'
 
-    # 4. Сборка проекта
     - name: Build the project
       run: |
-       GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o myapp main.go
+        GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o myapp main.go
 
-    # 5. Загрузка файлов на сервер
+    - name: Prepare server directory
+      run: |
+        ssh -o StrictHostKeyChecking=no root@89.110.83.57 "mkdir -p /var/www/myapp && rm -rf /var/www/myapp/*"
+
     - name: Deploy to server
       run: |
-        scp -o StrictHostKeyChecking=no myapp root@89.110.83.57:/var/www/myapp/
+        scp -r ./* root@89.110.83.57:/var/www/myapp/
 
-    # 6. Перезапуск бота на сервере
     - name: Restart bot on server
       run: |
-        ssh -o StrictHostKeyChecking=no root@89.110.83.57 'pkill -f myapp || true; nohup /var/www/myapp/myapp > /var/www/myapp/myapp.log 2>&1 &'
+        ssh -o StrictHostKeyChecking=no root@89.110.83.57 << 'EOF'
+        pkill -f myapp || true
+        nohup /var/www/myapp/myapp > /var/www/myapp/myapp.log 2>&1 &
+        EOF
 
-    # 7. Уведомление об успешном деплое
     - name: Notify success
       if: success()
       run: echo "Deploy successful!"
 
-    # 8. Уведомление о неудаче
     - name: Notify failure
       if: failure()
       run: echo "Deploy failed!"
