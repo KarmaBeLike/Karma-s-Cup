@@ -11,23 +11,29 @@ import (
 
 type Scheduler struct {
 	bot       *telebot.Bot
-	chat      *telebot.Chat 
+	chat      *telebot.Chat
 	config    *config.Config
+	location  *time.Location
 	horoscope content.ContentProvider
 	joke      content.ContentProvider
 	quote     content.ContentProvider
 }
 
 func New(bot *telebot.Bot, config *config.Config) *Scheduler {
+	loc, err := time.LoadLocation("Kazakhstan/Almaty")
+	if err != nil {
+		log.Println("failed to set time zone")
+		loc = time.UTC
+	}
 	return &Scheduler{
 		bot:       bot,
 		config:    config,
-		horoscope: content.NewHoroscopeProvider("aquarius"), 
+		location:  loc,
+		horoscope: content.NewHoroscopeProvider("aquarius"),
 		joke:      content.NewJokeProvider(),
 		quote:     content.NewQuoteProvider(),
 	}
 }
-
 
 func (s *Scheduler) SetChat(chat *telebot.Chat) {
 	s.chat = chat
@@ -44,7 +50,7 @@ func (s *Scheduler) Start() {
 	ticker := time.NewTicker(1 * time.Minute)
 
 	for range ticker.C {
-		now := time.Now()
+		now := time.Now().In(s.location)
 		hour := now.Hour()
 		minute := now.Minute()
 

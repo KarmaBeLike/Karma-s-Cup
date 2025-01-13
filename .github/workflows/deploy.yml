@@ -43,11 +43,3 @@ jobs:
         pkill -f myapp || true
         nohup /var/www/myapp/myapp > /var/www/myapp/myapp.log 2>&1 &
         EOF
-
-    - name: Notify success
-      if: success()
-      run: echo "Deploy successful!"
-
-    - name: Notify failure
-      if: failure()
-      run: echo "Deploy failed!"
