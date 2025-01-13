@@ -20,7 +20,7 @@ type Scheduler struct {
 }
 
 func New(bot *telebot.Bot, config *config.Config) *Scheduler {
-	loc, err := time.LoadLocation("Kazakhstan/Almaty")
+	loc, err := time.LoadLocation("Asia/Almaty")
 	if err != nil {
 		log.Println("failed to set time zone")
 		loc = time.UTC
