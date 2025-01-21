@@ -17,7 +17,7 @@ func NewHoroscopeProvider(sign string) *HoroscopeProvider {
 }
 
 func (h *HoroscopeProvider) GetContent() (string, error) {
-	url := fmt.Sprintf("https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily?sign=%s&day=TODAY", h.Sign)
+	url := fmt.Sprintf("https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily?sign=%s&day=TOMORROW", h.Sign)
 
 	resp, err := http.Get(url)
 	if err != nil {
