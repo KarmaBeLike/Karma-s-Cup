@@ -1,5 +1,6 @@
 # Базовый образ
-FROM golang:1.22 as builder
+FROM golang:1.22-alpine
+
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -12,14 +13,6 @@ COPY . .
 # Сборка приложения
 RUN go build -o bot .
 
-# Минимальный финальный образ
-FROM debian:bullseye-slim
-
-WORKDIR /app
-COPY --from=builder /app/bot .
-
-# Копируем .env файл
-COPY .env .
 
 # Запуск бота
 CMD ["./bot"]
