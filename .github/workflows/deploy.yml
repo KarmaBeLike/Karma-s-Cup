@@ -27,6 +27,13 @@ jobs:
     - name: Save Docker image as tarball
       run: |
         docker save mytelegrambot:latest > mytelegrambot.tar
+        
+    - name: Stop and remove old container
+      run: |
+        ssh root@89.110.83.57 << 'EOF'
+        docker stop mytelegrambot || true
+        docker rm mytelegrambot || true
+        EOF
 
     - name: Copy Docker image to server
       run: |
