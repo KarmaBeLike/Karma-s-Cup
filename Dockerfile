@@ -1,17 +1,25 @@
-# Базовый образ Golang
-FROM golang:1.22
+# Базовый образ
+FROM golang:1.22 as builder
 
-# Установка рабочего каталога
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копирование файлов проекта в контейнер
+# Копируем файлы
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
 
-# Установка зависимостей
-RUN go mod tidy
-
 # Сборка приложения
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o myapp main.go
+RUN go build -o bot .
 
-# Запуск приложения
-CMD ["./myapp"]
+# Минимальный финальный образ
+FROM debian:bullseye-slim
+
+WORKDIR /app
+COPY --from=builder /app/bot .
+
+# Копируем .env файл
+COPY .env .
+
+# Запуск бота
+CMD ["./bot"]
