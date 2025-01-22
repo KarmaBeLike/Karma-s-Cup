@@ -32,11 +32,14 @@ jobs:
       run: |
         scp mytelegrambot.tar root@89.110.83.57:/var/www/mytelegrambot/
 
-    - name: Load and run Docker image on server
+    - name: Load Docker image on server
       run: |
-        ssh -o StrictHostKeyChecking=no root@89.110.83.57 << 'EOF'
-        docker load < /var/www/mytelegrambot/mytelegrambot.tar
-        docker stop mytelegrambot || true
-        docker rm mytelegrambot || true
-        docker run -d --name mytelegrambot mytelegrambot:latest
-        EOF
+       ssh root@89.110.83.57 << 'EOF'
+       docker load < /var/www/mytelegrambot/mytelegrambot.tar
+       EOF
+
+    - name: Run Docker container on server
+      run: |
+       ssh root@89.110.83.57 << 'EOF'
+       docker run -d --env-file /var/www/mytelegrambot/.env --name mytelegrambot mytelegrambot:latest
+       EOF
