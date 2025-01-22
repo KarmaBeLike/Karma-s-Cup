@@ -1,4 +1,4 @@
-name: Deploy to Server
+name: Deploy Telegram Bot with Docker
 
 on:
   push:
@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Шаг 1: Клонирование репозитория
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Шаг 2: Настройка SSH-доступа
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
@@ -22,35 +20,23 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 89.110.83.57 >> ~/.ssh/known_hosts
 
-    # Шаг 3: Сборка Docker-образа
     - name: Build Docker image
       run: |
         docker build -t mytelegrambot:latest .
+
+    - name: Save Docker image as tarball
+      run: |
         docker save mytelegrambot:latest > mytelegrambot.tar
 
-    # Шаг 4: Остановка и удаление старого контейнера (на сервере)
-    - name: Stop and remove old container
-      run: |
-        ssh root@89.110.83.57 << 'EOF'
-        docker stop mytelegrambot || true
-        docker rm mytelegrambot || true
-        EOF
-
-    # Шаг 5: Копирование Docker-образа на сервер
     - name: Copy Docker image to server
       run: |
         scp mytelegrambot.tar root@89.110.83.57:/var/www/mytelegrambot/
 
-    # Шаг 6: Загрузка Docker-образа на сервере
-    - name: Load Docker image on server
+    - name: Load and run Docker image on server
       run: |
-        ssh root@89.110.83.57 << 'EOF'
+        ssh -o StrictHostKeyChecking=no root@89.110.83.57 << 'EOF'
         docker load < /var/www/mytelegrambot/mytelegrambot.tar
-        EOF
-
-    # Шаг 7: Запуск нового контейнера
-    - name: Run Docker container on server
-      run: |
-        ssh root@89.110.83.57 << 'EOF'
-        docker run -d --env-file /var/www/mytelegrambot/.env --name mytelegrambot mytelegrambot:latest
+        docker stop mytelegrambot || true
+        docker rm mytelegrambot || true
+        docker run -d --name mytelegrambot mytelegrambot:latest
         EOF
