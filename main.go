@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load("/var/www/myapp"); err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: .env file not found")
 	}
 
