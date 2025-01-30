@@ -1,52 +1,45 @@
-name: Deploy Telegram Bot with Docker
-
+name: Deploy to Server
 on:
   push:
     branches:
       - master
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H 89.110.83.57 >> ~/.ssh/known_hosts
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 89.110.83.57 >> ~/.ssh/known_hosts
 
-    - name: Build Docker image
-      run: |
-        docker build -t mytelegrambot:latest .
+      - name: Copy files to server
+        run: |
+          scp -r ./* root@89.110.83.57:/var/www/myapp/
 
-    - name: Save Docker image as tarball
-      run: |
-        docker save mytelegrambot:latest > mytelegrambot.tar
-        
-    - name: Stop and remove old container
-      run: |
-        ssh root@89.110.83.57 << 'EOF'
-        docker stop mytelegrambot || true
-        docker rm mytelegrambot || true
-        EOF
-
-    - name: Copy Docker image to server
-      run: |
-        scp mytelegrambot.tar root@89.110.83.57:/var/www/mytelegrambot/
-
-    - name: Load Docker image on server
-      run: |
-       ssh root@89.110.83.57 << 'EOF'
-       docker load < /var/www/mytelegrambot/mytelegrambot.tar
-       EOF
-
-    - name: Run Docker container on server
-      run: |
-       ssh root@89.110.83.57 << 'EOF'
-       docker run -d --env-file /var/www/mytelegrambot/.env --name mytelegrambot mytelegrambot:latest
-       EOF
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no root@89.110.83.57 << 'EOF'
+            cd /var/www/myapp
+            
+            # Остановить и удалить старый контейнер если есть
+            docker stop telegram-bot || true
+            docker rm telegram-bot || true
+            
+            # Собрать новый образ
+            docker build -t telegram-bot .
+            
+            # Запустить новый контейнер
+            docker run -d \
+              --name telegram-bot \
+              --restart unless-stopped \
+              -v /var/www/myapp/.env:/root/.env \
+              telegram-bot
+            
+            # Очистка неиспользуемых образов
+            docker system prune -f
+          EOF
