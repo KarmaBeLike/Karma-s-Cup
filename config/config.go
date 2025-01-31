@@ -11,8 +11,8 @@ type Config struct {
 
 func New() *Config {
 	return &Config{
-		MorningHour: 17,
-		MorningMin:  59,
+		MorningHour: 18,
+		MorningMin:  15,
 		NoonHour:    17,
 		NoonMin:     50,
 		EveningHour: 22,

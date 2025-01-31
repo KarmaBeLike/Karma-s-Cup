@@ -20,15 +20,9 @@ type Scheduler struct {
 }
 
 func New(bot *telebot.Bot, config *config.Config) *Scheduler {
-	loc, err := time.LoadLocation("Asia/Atyrau")
-	if err != nil {
-		log.Println("failed to set time zone")
-		loc = time.UTC
-	}
 	return &Scheduler{
 		bot:       bot,
 		config:    config,
-		location:  loc,
 		horoscope: content.NewHoroscopeProvider("aquarius"),
 		joke:      content.NewJokeProvider(),
 		quote:     content.NewQuoteProvider(),
