@@ -23,7 +23,7 @@ func main() {
 
 	pref := telebot.Settings{
 		Token:  token,
-		Poller: &telebot.LongPoller{Timeout: 30 * time.Second},
+		Poller: &telebot.LongPoller{Timeout: 59 * time.Second},
 	}
 
 	bot, err := telebot.NewBot(pref)
