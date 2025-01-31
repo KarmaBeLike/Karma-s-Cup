@@ -13,7 +13,6 @@ type Scheduler struct {
 	bot       *telebot.Bot
 	chat      *telebot.Chat
 	config    *config.Config
-	location  *time.Location
 	horoscope content.ContentProvider
 	joke      content.ContentProvider
 	quote     content.ContentProvider
@@ -44,7 +43,7 @@ func (s *Scheduler) Start() {
 	ticker := time.NewTicker(1 * time.Minute)
 
 	for range ticker.C {
-		now := time.Now().In(s.location)
+		now := time.Now()
 		hour := now.Hour()
 		minute := now.Minute()
 
