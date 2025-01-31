@@ -22,8 +22,9 @@ func main() {
 	}
 
 	pref := telebot.Settings{
-		Token:  token,
-		Poller: &telebot.LongPoller{Timeout: 10 * time.Second},
+		Token:   token,
+		Poller:  &telebot.LongPoller{Timeout: 10 * time.Second},
+		Verbose: true,
 	}
 
 	bot, err := telebot.NewBot(pref)
@@ -35,12 +36,21 @@ func main() {
 	scheduler := scheduler.New(bot, cfg)
 
 	bot.Handle(telebot.OnAddedToGroup, func(c telebot.Context) error {
-		log.Printf("Бот добавлен в группу: %s", c.Chat().Title)
+		log.Printf("Обработчик группы ВЫЗВАН")
+		log.Printf("Полная информация о чате: %+v", c.Chat())
+
+		if c.Chat() == nil {
+			log.Println("ОШИБКА: Chat() вернул nil")
+			return nil
+		}
+
+		log.Printf("ID чата: %v", c.Chat().ID)
+		log.Printf("Название чата: %s", c.Chat().Title)
+		log.Printf("Тип чата: %s", c.Chat().Type)
+
 		scheduler.SetChat(c.Chat())
 		go scheduler.Start()
+
 		return c.Send("Good Morning, Vietnam!")
 	})
-
-	log.Println("Бот запущен. Добавьте его в группу.")
-	bot.Start()
 }
