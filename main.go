@@ -13,7 +13,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Printf("Warning: .env file not found")
+		log.Println("Предупреждение: .env файл не найден")
 	}
 
 	token := os.Getenv("BOT_TOKEN")
@@ -38,7 +38,7 @@ func main() {
 		log.Printf("Бот добавлен в группу: %s", c.Chat().Title)
 		scheduler.SetChat(c.Chat())
 		go scheduler.Start()
-		return c.Send("Good Morning, Vietnam!")
+		return c.Send("Ехала!")
 	})
 
 	log.Println("Бот запущен. Добавьте его в группу.")

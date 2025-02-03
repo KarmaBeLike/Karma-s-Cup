@@ -1,21 +1,20 @@
 package config
 
+import "time"
+
 type Config struct {
-	MorningHour int
-	MorningMin  int
-	NoonHour    int
-	NoonMin     int
-	EveningHour int
-	EveningMin  int
+	TimeZone    *time.Location
+	MorningTime time.Time
+	NoonTime    time.Time
+	EveningTime time.Time
 }
 
 func New() *Config {
+	tz, _ := time.LoadLocation("Asia/Atyrau")
 	return &Config{
-		MorningHour: 9,
-		MorningMin:  59,
-		NoonHour:    18,
-		NoonMin:     15,
-		EveningHour: 23,
-		EveningMin:  14,
+		TimeZone:    tz,
+		MorningTime: time.Date(0, 0, 0, 9, 59, 0, 0, tz),
+		NoonTime:    time.Date(0, 0, 0, 18, 36, 0, 0, tz),
+		EveningTime: time.Date(0, 0, 0, 23, 14, 0, 0, tz),
 	}
 }

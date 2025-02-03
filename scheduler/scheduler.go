@@ -10,98 +10,72 @@ import (
 )
 
 type Scheduler struct {
-	bot       *telebot.Bot
-	chat      *telebot.Chat
-	config    *config.Config
-	horoscope content.ContentProvider
-	joke      content.ContentProvider
-	quote     content.ContentProvider
+	bot          *telebot.Bot
+	chat         *telebot.Chat
+	config       *config.Config
+	providers    map[string]content.ContentProvider
+	sentMessages map[string]bool
 }
 
-func New(bot *telebot.Bot, config *config.Config) *Scheduler {
+func New(bot *telebot.Bot, cfg *config.Config) *Scheduler {
 	return &Scheduler{
-		bot:       bot,
-		config:    config,
-		horoscope: content.NewHoroscopeProvider("aquarius"),
-		joke:      content.NewJokeProvider(),
-		quote:     content.NewQuoteProvider(),
+		bot:    bot,
+		config: cfg,
+		providers: map[string]content.ContentProvider{
+			"morning": content.NewHoroscopeProvider("aquarius"),
+			"noon":    content.NewJokeProvider(),
+			"evening": content.NewQuoteProvider(),
+		},
+		sentMessages: make(map[string]bool),
 	}
 }
 
 func (s *Scheduler) SetChat(chat *telebot.Chat) {
 	s.chat = chat
-	log.Printf("Установлен чат для отправки сообщений: %s (ID: %d)", chat.Title, chat.ID)
+	log.Printf("Чат установлен: %s (ID: %d)", chat.Title, chat.ID)
 }
 
 func (s *Scheduler) Start() {
 	if s.chat == nil {
-		log.Println("Чат не установлен! Ожидаем добавления бота в группу...")
+		log.Println("Чат не установлен. Ожидание добавления в группу...")
 		return
 	}
 
-	log.Printf("Планировщик запущен для группы: %s", s.chat.Title)
-	ticker := time.NewTicker(1 * time.Minute)
-
+	ticker := time.NewTicker(30 * time.Second)
 	for range ticker.C {
-		now := time.Now()
-		hour := now.Hour()
-		minute := now.Minute()
+		s.checkAndSendMessages()
+	}
+}
 
-		switch {
-		case hour == s.config.MorningHour && minute == s.config.MorningMin:
-			s.sendMorningMessage()
-		case hour == s.config.NoonHour && minute == s.config.NoonMin:
-			s.sendNoonMessage()
-		case hour == s.config.EveningHour && minute == s.config.EveningMin:
-			s.sendEveningMessage()
+func (s *Scheduler) checkAndSendMessages() {
+	now := time.Now().In(s.config.TimeZone)
+	currentTime := time.Date(0, 0, 0, now.Hour(), now.Minute(), 0, 0, time.UTC)
+
+	s.checkMessage("morning", currentTime, s.config.MorningTime)
+	s.checkMessage("noon", currentTime, s.config.NoonTime)
+	s.checkMessage("evening", currentTime, s.config.EveningTime)
+}
+
+func (s *Scheduler) checkMessage(key string, currentTime, targetTime time.Time) {
+	if !s.sentMessages[key] &&
+		currentTime.Hour() == targetTime.Hour() &&
+		currentTime.Minute() >= targetTime.Minute() &&
+		currentTime.Minute() < targetTime.Minute()+2 {
+
+		content, err := s.providers[key].GetContent()
+		if err != nil {
+			log.Printf("Ошибка получения %s контента: %v", key, err)
+			return
 		}
-	}
-}
 
-func (s *Scheduler) sendMorningMessage() {
-	if s.chat == nil {
-		return
-	}
-	content, err := s.horoscope.GetContent()
-	if err != nil {
-		log.Printf("Ошибка получения гороскопа: %v", err)
-		return
-	}
+		_, err = s.bot.Send(s.chat, content)
+		if err != nil {
+			log.Printf("Ошибка отправки %s сообщения: %v", key, err)
+			return
+		}
 
-	_, err = s.bot.Send(s.chat, content)
-	if err != nil {
-		log.Printf("Ошибка отправки утреннего сообщения: %v", err)
-	}
-}
-
-func (s *Scheduler) sendNoonMessage() {
-	if s.chat == nil {
-		return
-	}
-	content, err := s.joke.GetContent()
-	if err != nil {
-		log.Printf("Ошибка получения анекдота: %v", err)
-		return
-	}
-
-	_, err = s.bot.Send(s.chat, content)
-	if err != nil {
-		log.Printf("Ошибка отправки дневного сообщения: %v", err)
-	}
-}
-
-func (s *Scheduler) sendEveningMessage() {
-	if s.chat == nil {
-		return
-	}
-	content, err := s.quote.GetContent()
-	if err != nil {
-		log.Printf("Ошибка получения цитаты: %v", err)
-		return
-	}
-
-	_, err = s.bot.Send(s.chat, content)
-	if err != nil {
-		log.Printf("Ошибка отправки вечернего сообщения: %v", err)
+		s.sentMessages[key] = true
+	} else if currentTime.Hour() != targetTime.Hour() {
+		s.sentMessages[key] = false
 	}
 }

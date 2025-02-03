@@ -1,9 +1,5 @@
 FROM golang:1.22.6-alpine
 
-# Устанавливаем tzdata и устанавливаем часовой пояс
-RUN apk add --no-cache tzdata
-ENV TZ=Asia/Atyrau
-
 WORKDIR /app
 
 COPY go.mod .
