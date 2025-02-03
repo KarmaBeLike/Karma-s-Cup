@@ -13,6 +13,6 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o bot -a -installsuffix cgo .
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o myapp main.go
 
 CMD ["./bot"]
