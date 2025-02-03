@@ -74,6 +74,7 @@ func (s *Scheduler) checkMessage(key string, currentTime, targetTime time.Time) 
 			return
 		}
 
+		log.Printf("✅ Отправлено %s сообщение в группу: %s", key, s.chat.Title)
 		s.sentMessages[key] = true
 	} else if currentTime.Hour() != targetTime.Hour() {
 		s.sentMessages[key] = false
