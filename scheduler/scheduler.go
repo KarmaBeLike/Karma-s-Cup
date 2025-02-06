@@ -49,7 +49,7 @@ func (s *Scheduler) Start() {
 
 func (s *Scheduler) checkAndSendMessages() {
 	now := time.Now().In(s.config.TimeZone)
-	currentTime := time.Date(0, 0, 0, now.Hour(), now.Minute(), 0, 0, time.UTC)
+	currentTime := time.Date(0, 0, 0, now.Hour(), now.Minute(), 0, 0, s.config.TimeZone)
 
 	s.checkMessage("morning", currentTime, s.config.MorningTime)
 	s.checkMessage("noon", currentTime, s.config.NoonTime)
