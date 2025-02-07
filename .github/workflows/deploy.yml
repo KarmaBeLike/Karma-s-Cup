@@ -17,31 +17,24 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 89.110.83.57 >> ~/.ssh/known_hosts
 
-      - name: Clear old files on server
-        run: ssh root@89.110.83.57 "rm -rf /var/www/myapp/*"
-
       - name: Copy files to server
         run: |
-          rsync -av --exclude=".git" --exclude=".github" --exclude="node_modules" --delete ./ root@89.110.83.57:/var/www/myapp/
+          scp -r ./* root@89.110.83.57:/var/www/myapp/
+
+      - name: Restore .env
+        run: |
+          ssh root@89.110.83.57 "echo '${{ secrets.ENV_FILE }}' > /var/www/myapp/.env"
 
       - name: Deploy to server
         run: |
-          ssh root@89.110.83.57 << 'EOF'
+          ssh -o StrictHostKeyChecking=no root@89.110.83.57 << 'EOF'
             cd /var/www/myapp
             
-            # Проверка наличия .env
-            if [ ! -f /var/www/myapp/.env ]; then
-              touch /var/www/myapp/.env
-            fi
-
-            # Остановить и удалить старый контейнер если есть
+            # Остановить и удалить старый контейнер, если он есть
             docker stop telegram-bot || true
             docker rm telegram-bot || true
             
-            # Удалить старые образы перед созданием нового
-            docker rmi telegram-bot || true
-
-            # Собрать новый образ
+            # Собрать новый Docker-образ
             docker build -t telegram-bot .
             
             # Запустить новый контейнер
